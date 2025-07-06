@@ -1,0 +1,79 @@
+🔐 Project: Centralized Spring Security JWT Token Filter
+🧩 Tech Stack:
+Java, Spring Boot, Spring Security, JWT, Redis (optional), GitLab CI/CD, Docker
+
+📌 Problem Statement:
+Across the organization, multiple internal tools required a consistent and secure authentication system. Previously, each tool either implemented its own login mechanism or lacked token-based authorization, making maintenance, compliance, and access control difficult. There was a pressing need for:
+A unified, scalable JWT-based security filter
+Centralized token verification
+Role-based and group-based access control
+Easy integration across multiple in-house tools
+
+✅ Solution Overview:
+I designed, developed, and deployed a Spring Security JWT token filter module used as a centralized security library across multiple internal services. This module provided stateless authentication, simplified onboarding for new tools, and ensured compliance with our organization’s internal access policies.
+
+🔧 Key Features:
+JWT Token Extraction and Validation
+Tokens are extracted from the Authorization header (Bearer token format).
+Validated using a shared secret or public/private keypair (HS256).
+Token expiration and signature checks are enforced at the filter level.
+Custom JWT Filter Implementation
+Implemented as a OncePerRequestFilter in Spring Security.
+Automatically invoked for each HTTP request.
+Injects authenticated user context into SecurityContextHolder.
+Token Decoding and Claims Extraction
+
+Extracted claims:
+sub (user email/ID)
+roles (for role-based authorization)
+groups (for group-based access control)
+Used io.jsonwebtoken (jjwt) for token parsing and validation.
+UserDetailsService Integration
+The filter interacts with a custom UserDetailsService to optionally fetch user metadata.
+Supports extending user context with dynamic org roles or permission flags.
+Role + Group-Based Access Control
+Configured using @PreAuthorize, hasRole, and hasAuthority annotations.
+Admin-only endpoints, team-specific APIs, and role-gated actions are enforced with minimal config in each tool.
+
+Integration Across Services
+Packaged as a standalone library JAR and published internally.
+Integrated into multiple Spring Boot apps by adding a single dependency and config.
+Tokens can be added to a Redis-backed denylist if logout support is required.
+
+
+Dockerized and CI/CD Ready
+CI/CD pipeline on GitLab ensured linting, tests and versioned releases.
+Dockerized version available for local development with test tokens.
+
+🧠 Technical Challenges Solved
+Challenge	Solution
+Stateless verification without DB hits	Used signed tokens and optional Redis cache for revocation
+Dynamic org/group permissions	Encoded roles and groups in JWT payload
+Cross-service security standardization	Provided a plug-and-play library usable by all Spring Boot services
+Filter bypass for public APIs	Configured WebSecurityConfigurerAdapter to allow selective endpoint whitelisting
+
+🛡️ Example Flow
+Client logs in via login service → receives access_token and refresh_token.
+In-house tools include Authorization: Bearer <token> in every request.
+
+JWT Filter:
+Validates token
+Extracts user and roles
+Loads user into SecurityContext
+Proceeds with downstream request handling
+Endpoints are protected via URL pattern config.
+
+🔁 Extensibility & Reuse
+Configurable via .properties or .yaml:
+
+
+📈 Impact
+Unified access control across all internal apps
+Reduced security bugs by centralizing logic
+Onboarded new tools to the security layer in <1 day using the shared JAR
+
+GitLab CI/CD
+Every commit triggers:
+Static analysis
+Unit & integration tests
+Version bump + internal publishing

@@ -1,0 +1,59 @@
+ Educational Background – Amrut Savadatti
+I have always been passionate about engineering and the power of computation to solve real-world problems. My educational journey reflects a deep commitment to mastering both the theoretical foundations and practical applications of computer science and software engineering.
+
+🎓 Master of Science in Computer Science
+Worcester Polytechnic Institute (WPI), Massachusetts, USA
+📅 Expected Graduation: May 2026 | 🎯 Current GPA: 4.0
+
+At WPI, I am expanding my technical depth while also gaining the engineering leadership skills needed for cutting-edge innovation. I’m enrolled in the Non-Thesis Track, with a strong focus on AI, algorithms, distributed systems, and data engineering.
+
+🧠 Graduate Coursework (so far):
+CS 5084 – Algorithms: Design & Analysis
+
+CS 509 – Design of Software Systems
+
+CS 578 – Cryptography and Data Security
+
+CS 502 – Operating Systems
+
+CS 534 – Introduction to Artificial Intelligence
+
+CS 585 – Big Data Management
+
+CS 554 – Natural Language Processing (In Progress)
+
+CS 5008 – Systems and Network Programming (In Progress)
+
+This program allows me to explore my interests in AI, secure systems, and software scalability—fields I deeply care about. My ongoing coursework and projects reflect my goal to build systems that are intelligent, secure, and designed for scale.
+
+
+🏛️ Bachelor of Engineering in Computer Engineering
+University of Mumbai, India
+📅 Graduated: 2021 | 🎓 GPA: 3.3
+
+My undergraduate years were transformative—I learned to think like an engineer, solve problems with clarity, and work with diverse teams to build meaningful technology. The curriculum combined core computer science with practical labs and projects across software systems, networks, and intelligent systems.
+
+📘 Key Areas of Study:
+Software Engineering & System Programming
+
+Data Structures & Algorithms
+
+Computer Networks & Distributed Systems
+
+Artificial Intelligence & Machine Learning
+
+Big Data Analytics & Data Mining
+
+Cryptography & System Security
+
+Cloud Computing & Natural Language Processing
+
+Mobile App Development & Human-Machine Interaction
+
+Web Design, Microprocessors, and Operating Systems
+
+Throughout the 4 years, I applied this learning in labs, mini-projects, and a final year major project—strengthening my hands-on engineering ability. I graduated with a GPA of 3.3, placing a strong foundation for my current graduate work.
+
+
+🌟 My Academic Ethos
+I value practical application, creativity, and constant learning. Whether it’s building secure APIs, exploring neural models in NLP, or designing distributed architectures, I treat each challenge as an opportunity to grow and contribute meaningfully.

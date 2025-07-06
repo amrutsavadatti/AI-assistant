@@ -1,0 +1,57 @@
+Project: Keyword Launcher Module
+
+Tech Stack:
+Java, Spring Boot, MongoDB, Apache Kafka, Docker, GitLab CI/CD, AWS ECS
+
+Problem Statement:
+The business team needed to conduct keyword due diligence before launching marketing campaigns. They required answers to questions like:
+
+Which account does a keyword belong to?
+
+What similar keywords produce relevant results?
+
+Is a keyword compliant with its associated account?
+
+A legacy PHP + SQL pull-based system existed but was inefficient, lacked real-time updates, and couldn’t handle evolving, large-scale data efficiently.
+
+Solution:
+I independently designed, developed, and deployed a fully scalable, push-based microservice architecture using Kafka queues and MongoDB, ensuring real-time, efficient, and reliable keyword processing.
+
+Key Features:
+
+Keyword Upload: Users upload keywords (CSV or single) through an HTML form.
+Job Tracking: Each upload is treated as a job and tracked per user via a job database.
+Smart Caching: Preprocessed keywords are reused to avoid redundant processing.
+Push-Based Processing: Kafka queues handle processing pipelines, API calls, and long-running human-in-the-loop approvals.
+Real-Time Updates: Users can view processing progress and download CSV reports.
+Resilience: Built-in retry logic and Kafka offset commits only after successful processing ensured no data loss.
+Security: Integrated with an org-wide Spring Security JWT system for authentication and access control.
+
+Architecture Overview:
+
+Jobs are queued via Kafka and broken into individual keywords.
+Each keyword is processed by the appropriate service tagged via Kafka message labels.
+Processed results are pushed back to Kafka with a process-complete tag and stored in MongoDB.
+Long-running or manual validation jobs are handled asynchronously without blocking the pipeline.
+
+Technical Highlights & Challenges Solved:
+Designed both HLD and LLD for the entire system from scratch. Evaluated what tech stack would best suit this problem statement and used that.
+
+Solved critical reliability issues by:
+Implementing message retries and idempotent processing.
+Committing Kafka offsets only after successful processing.
+Scaled services using Docker and deployed on AWS ECS for high availability.
+
+Security:
+JWT-based authentication with Spring Security ensured only authorized users in the organization could upload or access keyword jobs.
+
+DevOps:
+Set up a GitLab CI/CD pipeline that automatically built, tested, logged and deployed the application on commit to staging or production branches.
+
+Extensibility:
+The architecture supports plug-and-play extension for new API processors or input formats.
+
+Impact:
+Improved system efficiency and responsiveness drastically.
+
+Handled real-time processing of thousands of keywords, reducing latency by ~70% compared to the legacy system.
