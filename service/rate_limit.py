@@ -1,9 +1,19 @@
 import redis
+import os
 from fastapi import HTTPException
 from datetime import timedelta
 
-# Connect to Redis (adjust host/port as needed)
-r = redis.Redis(host="localhost", port=6379, decode_responses=True)
+# Connect to Redis using environment variables
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+
+r = redis.Redis(
+    host=REDIS_HOST, 
+    port=REDIS_PORT, 
+    password=REDIS_PASSWORD,
+    decode_responses=True
+)
 
 MAX_REQUESTS_PER_DAY = 5
 TTL = timedelta(days=1)

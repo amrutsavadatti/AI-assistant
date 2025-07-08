@@ -20,7 +20,11 @@ LLM_TIMEOUT_SECONDS = 40   # seconds
 
 
 from redis import Redis
-r = Redis(host="localhost", port=6379, decode_responses=True)
+import os
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+r = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
 
 @app.get("/chat/{question}")
 async def chat(

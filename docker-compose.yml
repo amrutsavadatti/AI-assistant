@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Redis service for rate limiting and chat history
+  redis:
+    image: redis:7-alpine
+    container_name: ai-assistant-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-defaultpassword}
+    networks:
+      - ai-assistant-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Main AI Assistant Application
+  app:
+    build: .
+    container_name: ai-assistant-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-defaultpassword}
+      - ENVIRONMENT=development
+    volumes:
+      - ./chroma_persistent_storage:/app/chroma_persistent_storage
+      - ./service/chroma_persistent_storage:/app/service/chroma_persistent_storage
+      - ./knowledge_base:/app/knowledge_base:ro
+      # Mount source code for development (hot reloading)
+      - ./main.py:/app/main.py
+      - ./service:/app/service
+      - ./requirements.txt:/app/requirements.txt
+    # Override command for development with auto-reload
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--workers", "1"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-assistant-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  ai-assistant-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis_data:
+    driver: local 
