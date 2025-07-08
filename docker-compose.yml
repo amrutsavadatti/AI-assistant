@@ -32,6 +32,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD:-defaultpassword}
       - ENVIRONMENT=development
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
     volumes:
       - ./chroma_persistent_storage:/app/chroma_persistent_storage
       - ./service/chroma_persistent_storage:/app/service/chroma_persistent_storage

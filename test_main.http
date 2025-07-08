@@ -1,4 +1,12 @@
 # Test your FastAPI endpoints
+# 
+# Testing Flow:
+# 1. Register email (sets cookie)
+# 2. Make chat requests (uses cookie)
+# 3. Test rate limiting and returning user scenarios
+# 4. Test error cases and edge cases
+#
+# Note: Chat endpoint uses query parameter: /chat?question=your_question
 
 # 1. Register email with company (required first step) - sets email cookie
 GET http://127.0.0.1:8000/register?email=test@example.com&company=TechCorp Inc
@@ -6,14 +14,14 @@ Accept: application/json
 
 ###
 
-# 2. Chat using registered email cookie
-GET http://127.0.0.1:8000/chat/What%20is%20Amrut's%20experience%20with%20Java
+# 2. Chat using registered email cookie (question as query parameter)
+GET http://127.0.0.1:8000/chat?question=What is Amrut's experience with Java?
 Accept: application/json
 
 ###
 
 # 3. Another chat question using same cookie
-GET http://127.0.0.1:8000/chat/Tell%20me%20about%20Amrut's%20projects
+GET http://127.0.0.1:8000/chat?question=Tell me about Amrut's projects
 Accept: application/json
 
 ###
@@ -36,9 +44,30 @@ Accept: application/json
 
 ###
 
+# 6.1. Get active registrations from Redis (admin endpoint)
+GET http://127.0.0.1:8000/redis-registrations
+Accept: application/json
+
+###
+
 # 7. FastAPI docs
 GET http://127.0.0.1:8000/docs
 Accept: text/html
+
+###
+
+# 7.1. Test CORS preflight request (OPTIONS method)
+OPTIONS http://127.0.0.1:8000/register
+Origin: http://localhost:3000
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type
+
+###
+
+# 7.2. Test CORS actual request with Origin header
+GET http://127.0.0.1:8000/user-status
+Origin: http://localhost:3000
+Accept: application/json
 
 ###
 
@@ -55,7 +84,75 @@ Accept: application/json
 ###
 
 # 10. Chat with the new registered email
-GET http://127.0.0.1:8000/chat/What%20technologies%20does%20Amrut%20know
+GET http://127.0.0.1:8000/chat?question=What technologies does Amrut know?
+Accept: application/json
+
+###
+
+# 11. Test returning user scenario - try to register same email again
+GET http://127.0.0.1:8000/register?email=test@example.com&company=TechCorp Inc
+Accept: application/json
+
+###
+
+# 12. Make 5 chat requests to exhaust questions (run these sequentially)
+GET http://127.0.0.1:8000/chat?question=What is Amrut's experience with Spring Boot?
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/chat?question=Tell me about the JWT authenticator project
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/chat?question=What is the keyword launcher module?
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/chat?question=What programming languages does Amrut know?
+Accept: application/json
+
+###
+
+GET http://127.0.0.1:8000/chat?question=What is Amrut's educational background?
+Accept: application/json
+
+###
+
+# 13. Try to register again after exhausting questions
+GET http://127.0.0.1:8000/register?email=test@example.com&company=TechCorp Inc
+Accept: application/json
+
+###
+
+# 14. Try to chat without registering first (should fail)
+GET http://127.0.0.1:8000/chat?question=This should fail
+Accept: application/json
+
+###
+
+# 15. Try to chat with empty question (should fail - min_length=1)
+GET http://127.0.0.1:8000/chat?question=
+Accept: application/json
+
+###
+
+# 16. Try to chat with very long question (test max_length limit)
+GET http://127.0.0.1:8000/chat?question=This is a very long question that should test the maximum length limit of the question parameter to see if it properly validates the input and returns an appropriate error message when the question exceeds the maximum allowed character limit which is set to three hundred characters in the application configuration and this question is intentionally made longer than that limit to trigger the validation error
+Accept: application/json
+
+###
+
+# 17. Test chat with special characters in question
+GET http://127.0.0.1:8000/chat?question=What is Amrut's experience with C++ & .NET?
+Accept: application/json
+
+###
+
+# 18. Test user status after exhausting all questions
+GET http://127.0.0.1:8000/user-status
 Accept: application/json
 
 ###
