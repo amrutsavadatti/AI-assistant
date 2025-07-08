@@ -18,8 +18,8 @@ r = redis.Redis(
 MAX_REQUESTS_PER_DAY = 5
 TTL = timedelta(days=1)
 
-def check_rate_limit(ip: str):
-    key = f"rate_limit:{ip}"
+def check_rate_limit(email: str):
+    key = f"rate_limit:{email}"
 
     # Increment counter atomically
     count = r.incr(key)

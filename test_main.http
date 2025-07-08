@@ -1,11 +1,61 @@
 # Test your FastAPI endpoints
 
-GET http://127.0.0.1:8000/
+# 1. Register email with company (required first step) - sets email cookie
+GET http://127.0.0.1:8000/register?email=test@example.com&company=TechCorp Inc
 Accept: application/json
 
 ###
 
-GET http://127.0.0.1:8000/hello/User
+# 2. Chat using registered email cookie
+GET http://127.0.0.1:8000/chat/What%20is%20Amrut's%20experience%20with%20Java
+Accept: application/json
+
+###
+
+# 3. Another chat question using same cookie
+GET http://127.0.0.1:8000/chat/Tell%20me%20about%20Amrut's%20projects
+Accept: application/json
+
+###
+
+# 4. Check user status (email and remaining questions)
+GET http://127.0.0.1:8000/user-status
+Accept: application/json
+
+###
+
+# 5. Get all user histories (admin endpoint)
+GET http://127.0.0.1:8000/all-history
+Accept: application/json
+
+###
+
+# 6. Get registration logs (admin endpoint)
+GET http://127.0.0.1:8000/registration-logs
+Accept: application/json
+
+###
+
+# 7. FastAPI docs
+GET http://127.0.0.1:8000/docs
+Accept: text/html
+
+###
+
+# 8. Register email without company (testing optional field)
+GET http://127.0.0.1:8000/register?email=another@example.com
+Accept: application/json
+
+###
+
+# 9. Register email with different company for testing
+GET http://127.0.0.1:8000/register?email=user@startup.com&company=StartupXYZ
+Accept: application/json
+
+###
+
+# 10. Chat with the new registered email
+GET http://127.0.0.1:8000/chat/What%20technologies%20does%20Amrut%20know
 Accept: application/json
 
 ###

@@ -57,7 +57,7 @@ def generate_response(original_query:str, retrieved_documents:tuple):
     answer = response.choices[0].message
     return answer
 
-# @lru_cache(maxsize=100)
+@lru_cache(maxsize=100)
 def get_response(original_query):
     print(f"[CACHE MISS] original_query = {original_query}")
 
