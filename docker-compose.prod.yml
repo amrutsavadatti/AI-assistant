@@ -59,7 +59,8 @@ services:
       - "80:80"    # Expose frontend on port 80 for production
       - "443:443"  # HTTPS port for production
     volumes:
-      - ./portfolio/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./portfolio/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro  # Mount SSL certificates
     depends_on:
       app:
         condition: service_healthy

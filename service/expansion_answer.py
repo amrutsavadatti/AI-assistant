@@ -4,7 +4,7 @@ from openai import OpenAI
 from service.chromaDbUtils import get_existing_chroma_collection
 from functools import lru_cache
 import re
-
+from service.helperUtils import word_wrap
 
 load_dotenv()
 
@@ -13,7 +13,7 @@ client = OpenAI(api_key=openai_key)
 
 
 def augment_query_generated(query, model="gpt-3.5-turbo"):
-    prompt = """You are Amrut's AI assistant, your name is Clarice.
+    prompt = """You are Amrut's AI assistant, your name is Clarity.
    Provide an example answer to the given question, that might be found in a documents that describe amruts work, resume, projects etc."""
     messages = [
         {
@@ -32,6 +32,7 @@ def augment_query_generated(query, model="gpt-3.5-turbo"):
 
 
 def generate_response(original_query:str, retrieved_documents:tuple):
+    print(f"[CACHE MISS] inside 2nd function")
     context = "\n\n".join(retrieved_documents)
     prompt = (
         "Your name is Clarice and you are Amrut's personal assistant for question-answering tasks. Use the following pieces of "
@@ -63,16 +64,19 @@ def get_response(original_query):
 
     hypothetical_answer = augment_query_generated(original_query)
     joint_query = f"{original_query} {hypothetical_answer}"
-    # print(word_wrap(joint_query))
+    print(word_wrap(joint_query) + "+++++++++++++++++++++++++")
     chroma_collection = get_existing_chroma_collection()
 
     results = chroma_collection.query(
         query_texts=joint_query, n_results=5, include=["documents", "embeddings"]
     )
     retrieved_documents = results["documents"][0]
-    # for document in retrieved_documents:
-    #     print(word_wrap(document))
-    #     print("\n")
+    print("+++++++++++++++++++++++++")
+    print(results)
+    for document in retrieved_documents:
+        print(word_wrap(document))
+        print("\n")
+    print("+++++++++++++++++++++++++")
     retrieved_documents = tuple(retrieved_documents)  # cast list to tuple
     return generate_response(original_query, retrieved_documents)
 
