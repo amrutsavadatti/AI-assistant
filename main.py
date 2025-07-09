@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException, Request, Path, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from service import expansion_answer
 from service.rate_limit import check_rate_limit, MAX_REQUESTS_PER_DAY
+from service.chromaDbUtils import load_knowledge_texts, chunk_texts, get_chroma_collection, populate_chroma_collection
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 import openai
 import logging
 import asyncio
@@ -151,7 +153,8 @@ async def root():
             "/user-status",
             "/all-history",
             "/registration-logs",
-            "/redis-registrations"
+            "/redis-registrations",
+            "/load-knowledge"
         ]
     }
 
@@ -388,3 +391,108 @@ async def get_redis_registrations():
         "total_active_users": len(active_registrations),
         "active_registrations": active_registrations
     }
+
+@app.get("/load-knowledge")
+async def load_knowledge():
+    """Load knowledge from knowledge_base directory into ChromaDB"""
+    
+    try:
+        logger.info("Starting knowledge base loading process...")
+        
+        # Define paths
+        knowledge_dir = "knowledge_base"
+        chroma_base_dir = "service/chroma_persistent_storage"
+        collection_name = "Amrut-knowledge-base"
+        
+        # Check if knowledge base directory exists
+        if not os.path.exists(knowledge_dir):
+            raise HTTPException(404, f"Knowledge base directory not found: {knowledge_dir}")
+        
+        # Create ChromaDB directory if it doesn't exist
+        os.makedirs(chroma_base_dir, exist_ok=True)
+        
+        # Step 1: Load knowledge texts
+        logger.info(f"Loading texts from {knowledge_dir}...")
+        texts = load_knowledge_texts(knowledge_dir)
+        
+        if not texts:
+            raise HTTPException(400, "No texts found in knowledge base directory")
+        
+        logger.info(f"Loaded {len(texts)} text documents")
+        
+        # Step 2: Chunk the loaded texts
+        logger.info("Chunking texts...")
+        chunks = chunk_texts(texts, chunk_size=256, overlap=20)
+        
+        if not chunks:
+            raise HTTPException(400, "No chunks created from texts")
+        
+        logger.info(f"Created {len(chunks)} text chunks")
+        
+        # Step 3: Get or create ChromaDB collection
+        logger.info("Setting up ChromaDB collection...")
+        embedding_fn = SentenceTransformerEmbeddingFunction()
+        collection = get_chroma_collection(
+            path=chroma_base_dir,
+            collection_name=collection_name,
+            embedding_fn=embedding_fn
+        )
+        
+        # Step 4: Populate the collection with chunks
+        logger.info("Populating ChromaDB collection...")
+        populate_chroma_collection(collection, chunks)
+        
+        # Test the populated collection
+        logger.info("Testing ChromaDB query...")
+        test_results = collection.query(
+            query_texts=["What is Amrut's experience?"],
+            n_results=3,
+            include=["documents", "embeddings"]
+        )
+        
+        # Get collection stats
+        collection_count = collection.count()
+        
+        logger.info("Knowledge base loading completed successfully!")
+        
+        # Safely extract test results without numpy array boolean evaluation
+        test_docs_count = 0
+        embedding_dim = 0
+        
+        if test_results and 'documents' in test_results and test_results['documents']:
+            docs_list = test_results['documents'][0]
+            if docs_list is not None and len(docs_list) > 0:
+                test_docs_count = len(docs_list)
+        
+        if test_results and 'embeddings' in test_results and test_results['embeddings']:
+            embeddings_list = test_results['embeddings'][0] 
+            if embeddings_list is not None and len(embeddings_list) > 0:
+                first_embedding = embeddings_list[0]
+                if first_embedding is not None and hasattr(first_embedding, '__len__'):
+                    embedding_dim = len(first_embedding)
+        
+        return {
+            "status": 200,
+            "message": "Knowledge base loaded successfully into ChromaDB",
+            "details": {
+                "knowledge_directory": knowledge_dir,
+                "chroma_directory": chroma_base_dir,
+                "collection_name": collection_name,
+                "total_documents": len(texts),
+                "total_chunks": len(chunks),
+                "collection_count": collection_count,
+                "test_query_results": test_docs_count,
+                "embedding_dimension": embedding_dim,
+                "sample_chunks": chunks[:2] if len(chunks) >= 2 else chunks  # Show first 2 chunks as sample
+            }
+        }
+        
+    except HTTPException as he:
+        logger.error(f"HTTP exception during knowledge loading: {he.detail}")
+        raise he
+    
+    except Exception as e:
+        logger.error(f"Unexpected error during knowledge loading: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, f"Internal server error during knowledge loading: {str(e)}")

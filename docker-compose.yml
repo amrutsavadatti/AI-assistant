@@ -36,7 +36,6 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001,http://localhost:8080}
       - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-true}
     volumes:
-      - ./chroma_persistent_storage:/app/chroma_persistent_storage
       - ./service/chroma_persistent_storage:/app/service/chroma_persistent_storage
       - ./knowledge_base:/app/knowledge_base:ro
       # Mount source code for development (hot reloading)

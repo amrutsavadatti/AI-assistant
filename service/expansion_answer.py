@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from service.chromaDbUtils import get_existing_chroma_collection
+from service.helperUtils import word_wrap
 from functools import lru_cache
 import re
 from service.helperUtils import word_wrap
@@ -65,7 +66,10 @@ def get_response(original_query):
     hypothetical_answer = augment_query_generated(original_query)
     joint_query = f"{original_query} {hypothetical_answer}"
     print(word_wrap(joint_query) + "+++++++++++++++++++++++++")
-    chroma_collection = get_existing_chroma_collection()
+    chroma_collection = get_existing_chroma_collection(
+        base_dir="service/chroma_persistent_storage", 
+        collection_name="Amrut-knowledge-base"
+    )
 
     results = chroma_collection.query(
         query_texts=joint_query, n_results=5, include=["documents", "embeddings"]

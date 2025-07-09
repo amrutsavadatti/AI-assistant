@@ -36,7 +36,6 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-https://yourdomain.com,https://www.yourdomain.com}
       - CORS_ALLOW_CREDENTIALS=${CORS_ALLOW_CREDENTIALS:-true}
     volumes:
-      - ./chroma_persistent_storage:/app/chroma_persistent_storage
       - ./service/chroma_persistent_storage:/app/service/chroma_persistent_storage
       - ./knowledge_base:/app/knowledge_base:ro
     depends_on:

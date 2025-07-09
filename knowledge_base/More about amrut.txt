@@ -1,0 +1,54 @@
+A passionate Product and Software developer with a strong foundation in scalable systems, clean code, and real-time architecture. I take pride in building impactful, efficient products and have a deep enthusiasm for AI technologies. My experience spans from real-time ad tech systems to mobile and full-stack freelance projects.
+
+I’m not just an engineer, I’m a problem solver, a team collaborator, and someone who always thinks from the user’s and product’s perspective. I combine technical expertise with great communication, adaptability, and a product-first mindset—ideal for fast-moving, innovative environments.
+
+Why Hire Me?
+I don’t just write code—I build solutions that scale, evolve, and create value. I bring a blend of backend expertise, product intuition, and a keen interest in emerging technologies, especially in the AI and data engineering space. Whether it’s building robust APIs or crafting meaningful user journeys, I’m here to "return" results.
+
+I’m also passionate about building AI-powered automation tools and have a growing interest in Artificial Intelligence, Machine Learning, and Deep Learning. I believe these technologies will play a critical role in shaping the future of product experiences, and I’m actively learning and experimenting with them to stay ahead of the curve.
+
+Web Applications Developer
+Media.net — August 2021 – May 2024
+Full-Time | Mumbai, India
+
+Designed and built a Kafka-based Keyword Launcher API, reducing latency by 35% and enabling real-time keyword analysis for ad delivery systems.
+Engineered a configurable data pipeline using Kafka, Elasticsearch, and Druid that increased throughput by 60%, powering real-time ROAS (Return On Ad Spend) analytics and unified logging for over 30+ APIs.
+Developed a centralized API Proxy Service with Docker-based deployment, caching, and integrated key management—cutting external API costs by 25%.
+Contributed to analytical tool development for deep performance insights into ad campaigns.
+Led performance tuning initiatives using ELK stack, ensuring low-latency, high-volume data processing across distributed systems.
+Mobile App Developer (Freelance)
+Gopalak Milk — July 2020 – June 2021
+
+Developed a Flutter mobile app for milk subscription and delivery tracking.
+Built a custom admin dashboard to manage inventory, orders, and customers.
+Integrated a secure payment gateway for subscription management and auto-renewals.
+Designed a scalable backend with a customized relational schema.
+Fullstack Developer (Freelance)
+ShetkariRaja — May 2020
+
+Developed an e-commerce website for local farmers using React + Strapi.
+Integrated Freecharge payment gateway.
+Implemented a full inventory management system.
+Customized UI/UX for responsive, intuitive user experience.
+Software Developer Intern
+Bhaktivedanta Hospital IT Department — December 2019
+
+Built a mobile app to streamline pharmacy logistics and reduce delivery errors.
+Implemented QR-based authentication for delivery receipts.
+Achieved 37% faster delivery times and 40% fewer errors in medical logistics.
+Built real-time reporting dashboards for tracking medication trends.
+Web Developer Intern
+ValueFin — June 2019
+
+Created a corporate portfolio website and a blog platform for financial insights.
+Enhanced SEO and responsive design for improved reach and usability.
+
+Soft Skills & Product Mindset
+
+Team Player – Excellent collaborator, capable of both leading and supporting cross-functional teams.
+Communication – Clear communicator of technical ideas and tradeoffs to stakeholders, PMs, and non-technical collaborators.
+Curiosity-Driven – Continuously learning new frameworks, tools, and design patterns.
+Product Thinking – Strong ability to understand the “why” behind features, leading to intuitive, value-adding solutions.
+Innovation-First – Passionate about AI, automation, and developing tools that make life easier for users and developers alike.
+
+I’m eager to work on revolutionary products, especially those that integrate AI, automation, real-time data, and developer tools. I'm actively exploring opportunities to contribute to the next generation of intelligent systems—whether it's building from scratch, optimizing at scale, or prototyping new ideas.
