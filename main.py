@@ -16,17 +16,31 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # FastAPI app
-app = FastAPI()
+# Check if running behind proxy (nginx) 
+root_path = "/api" if os.getenv("ENVIRONMENT") == "development" else ""
 
-# CORS middleware configuration
-# For development: allows all origins
-# For production: set CORS_ORIGINS environment variable (comma-separated URLs)
-cors_origins = os.getenv("CORS_ORIGINS", "*").split(",") if os.getenv("CORS_ORIGINS") != "*" else ["*"]
+app = FastAPI(
+    title="AI Assistant API",
+    description="Backend API for Amrut's AI Assistant portfolio chatbot",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc", 
+    openapi_url="/openapi.json",
+    root_path=root_path
+)
+
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+cors_allow_credentials = os.getenv("CORS_ALLOW_CREDENTIALS", "true").lower() == "true"
+
+cors_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_credentials=True,
+    allow_credentials=cors_allow_credentials,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
@@ -55,7 +69,7 @@ def check_previous_registration(email: str):
             return {
                 "is_returning": True,
                 "is_exhausted": True,
-                "message": f"Welcome back! You've already used all {MAX_REQUESTS_PER_DAY} questions for today. Your limit will reset in 24 hours from your first question."
+                "message": f"Welcome back! You've already used all {MAX_REQUESTS_PER_DAY} questions for today. Your limit will reset in 24 hours from your first question.\n\n📅 **For more in-depth discussion, let's meet!**\n\nSchedule a 30-minute conversation with Amrut directly:\n🔗 https://calendly.com/amrutsavadatticareers/30min"
             }
         else:
             remaining = MAX_REQUESTS_PER_DAY - current_question_count
@@ -124,6 +138,23 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 r = Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, decode_responses=True)
 
+@app.get("/")
+async def root():
+    """Root endpoint - API health check"""
+    return {
+        "message": "AI Assistant API is running!",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": [
+            "/register",
+            "/chat", 
+            "/user-status",
+            "/all-history",
+            "/registration-logs",
+            "/redis-registrations"
+        ]
+    }
+
 @app.get("/register")
 async def register_email(
     email: str = Query(..., description="User email address (required for registration)"),
@@ -138,7 +169,8 @@ async def register_email(
         value=email, 
         max_age=86400,  # 24 hours
         httponly=True,
-        secure=False  # Set to True in production with HTTPS
+        secure=False,  # Set to True in production with HTTPS
+        samesite="lax"
     )
     
     print(f"Registered user email: {email}" + (f" from company: {company}" if company else ""))
@@ -198,7 +230,7 @@ async def chat(
     if not check_rate_limit(email):
         return {
             "status": 429,
-            "response": "Sorry! You've reached the limit of 5 questions per day. To continue the conversation, please drop your email and we'll follow up with all the relevant details about Amrut.\n Looking forward to connecting!"
+            "response": "Sorry! You've reached the limit of 5 questions per day. To continue the conversation, please drop your email and we'll follow up with all the relevant details about Amrut.\n\n📅 **For more in-depth discussion, let's meet!**\n\nSchedule a 30-minute conversation with Amrut directly:\n🔗 https://calendly.com/amrutsavadatticareers/30min\n\nLooking forward to connecting!"
         }
 
     try:

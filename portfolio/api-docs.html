@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - AI Assistant</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .links {
+            background: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .links a {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .links a:hover {
+            background: #5a6fd8;
+        }
+        .docs-frame {
+            width: 100%;
+            height: calc(100vh - 160px);
+            border: none;
+            background: white;
+        }
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error-message h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+        }
+        .error-message p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .error-message code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 AI Assistant API Documentation</h1>
+        <p>Interactive API documentation for Amrut's AI Assistant</p>
+    </div>
+    
+    <div class="links">
+        <a href="/api/docs" target="_blank">📚 Swagger UI</a>
+        <a href="/api/redoc" target="_blank">📖 ReDoc</a>
+        <a href="/api/openapi.json" target="_blank">📄 OpenAPI JSON</a>
+        <a href="/api/" target="_blank">🔧 API Root</a>
+        <a href="/">🏠 Portfolio Home</a>
+    </div>
+
+    <div id="docs-container">
+        <div class="error-message">
+            <h3>API Documentation Access</h3>
+            <p>If the docs are not loading properly, try these direct links:</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li><strong>Swagger UI:</strong> <a href="/api/docs" target="_blank">/api/docs</a></li>
+                <li><strong>ReDoc:</strong> <a href="/api/redoc" target="_blank">/api/redoc</a></li>
+                <li><strong>OpenAPI JSON:</strong> <a href="/api/openapi.json" target="_blank">/api/openapi.json</a></li>
+                <li><strong>API Health:</strong> <a href="/api/" target="_blank">/api/</a></li>
+            </ul>
+            <p>Or access the backend directly (development only):</p>
+            <ul style="text-align: left; display: inline-block;">
+                <li><strong>Direct Docs:</strong> <a href="http://localhost:8000/docs" target="_blank">localhost:8000/docs</a></li>
+                <li><strong>Direct API:</strong> <a href="http://localhost:8000/" target="_blank">localhost:8000/</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Try to load the docs in an iframe
+        function loadDocs() {
+            const container = document.getElementById('docs-container');
+            
+            // Test if we can access the API
+            fetch('/api/')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API is accessible:', data);
+                    // Create iframe for docs
+                    const iframe = document.createElement('iframe');
+                    iframe.src = '/api/docs';
+                    iframe.className = 'docs-frame';
+                    iframe.onload = function() {
+                        console.log('Docs loaded successfully');
+                    };
+                    iframe.onerror = function() {
+                        console.error('Failed to load docs in iframe');
+                    };
+                    
+                    // Replace the error message with the iframe
+                    container.innerHTML = '';
+                    container.appendChild(iframe);
+                })
+                .catch(error => {
+                    console.error('API is not accessible:', error);
+                    // Keep the error message with helpful links
+                });
+        }
+
+        // Load docs when page is ready
+        document.addEventListener('DOMContentLoaded', loadDocs);
+    </script>
+</body>
+</html> 

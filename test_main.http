@@ -7,6 +7,14 @@
 # 4. Test error cases and edge cases
 #
 # Note: Chat endpoint uses query parameter: /chat?question=your_question
+# 
+# SAME-ORIGIN SETUP:
+# - Frontend: http://localhost:3000 (nginx + static files)
+# - API: http://localhost:3000/api/* (proxied to backend)
+# - No CORS issues since everything is same-origin!
+#
+# BACKEND ONLY (for direct testing):
+# - API: http://localhost:8000/* (direct backend access)
 
 # 1. Register email with company (required first step) - sets email cookie
 GET http://127.0.0.1:8000/register?email=test@example.com&company=TechCorp Inc
@@ -64,9 +72,16 @@ Access-Control-Request-Headers: Content-Type
 
 ###
 
-# 7.2. Test CORS actual request with Origin header
+# 7.2. Test CORS actual request with Origin header (should work with credentials)
 GET http://127.0.0.1:8000/user-status
 Origin: http://localhost:3000
+Accept: application/json
+
+###
+
+# 7.3. Test CORS with null origin (file:// protocol)
+GET http://127.0.0.1:8000/user-status
+Origin: null
 Accept: application/json
 
 ###
@@ -154,5 +169,51 @@ Accept: application/json
 # 18. Test user status after exhausting all questions
 GET http://127.0.0.1:8000/user-status
 Accept: application/json
+
+###
+
+# ===========================================
+# SAME-ORIGIN TESTS (Frontend + API together)
+# ===========================================
+
+# 19. Test same-origin registration (via nginx proxy)
+GET http://localhost:3000/api/register?email=sameorigin@example.com&company=SameOrigin Corp
+Accept: application/json
+
+###
+
+# 20. Test same-origin chat (via nginx proxy)
+GET http://localhost:3000/api/chat?question=Tell me about Amrut's Java experience
+Accept: application/json
+
+###
+
+# 21. Test same-origin user status (via nginx proxy)
+GET http://localhost:3000/api/user-status
+Accept: application/json
+
+###
+
+# 22. Test same-origin admin endpoints (via nginx proxy)
+GET http://localhost:3000/api/registration-logs
+Accept: application/json
+
+###
+
+# 23. Test frontend health check
+GET http://localhost:3000/health
+Accept: text/plain
+
+###
+
+# 24. Test frontend static files
+GET http://localhost:3000/
+Accept: text/html
+
+###
+
+# 25. Test frontend admin page
+GET http://localhost:3000/admin.html
+Accept: text/html
 
 ###

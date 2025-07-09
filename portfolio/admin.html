@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <a href="#" class="logo">Portfolio <span>Admin</span></a>
+        <a href="index.html" class="back-btn"><i class='bx bx-arrow-back'></i> Back to Portfolio</a>
+    </header>
+
+    <main class="admin-container">
+        <aside class="sidebar">
+            <nav class="admin-nav">
+                <ul>
+                    <li><a href="#personal" class="active">Personal Info</a></li>
+                    <li><a href="#experience">Experience</a></li>
+                    <li><a href="#skills">Skills</a></li>
+                    <li><a href="#resume">Resume</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="content-area">
+            <section id="personal" class="admin-section active">
+                <h2 class="section-title">Personal Information</h2>
+                <form id="personal-form" class="admin-form">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" placeholder="Your Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="title">Professional Title</label>
+                        <input type="text" id="title" name="title" placeholder="Software Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label for="bio">Bio/Description</label>
+                        <textarea id="bio" name="bio" rows="4" placeholder="A short description about yourself"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="linkedin">LinkedIn URL</label>
+                        <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="github">GitHub URL</label>
+                        <input type="url" id="github" name="github" placeholder="https://github.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone" placeholder="+1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="profile-pic">Profile Picture</label>
+                        <input type="file" id="profile-pic" name="profile-pic" accept="image/*">
+                        <div class="img-preview" id="profile-pic-preview"></div>
+                    </div>
+                    <button type="submit" class="btn save-btn">Save Changes</button>
+                </form>
+            </section>
+
+            <section id="experience" class="admin-section">
+                <h2 class="section-title">Experience</h2>
+                <div class="admin-items" id="experience-items">
+                    <!-- Experience items will be added dynamically -->
+                </div>
+                <button class="btn add-btn" id="add-experience">Add New Experience</button>
+                
+                <div class="modal" id="experience-modal">
+                    <div class="modal-content">
+                        <span class="close-btn">&times;</span>
+                        <h3>Add/Edit Experience</h3>
+                        <form id="experience-form" class="admin-form">
+                            <input type="hidden" id="experience-id" name="id">
+                            <div class="form-group">
+                                <label for="job-title">Job Title</label>
+                                <input type="text" id="job-title" name="jobTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="company">Company</label>
+                                <input type="text" id="company" name="company" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="job-type">Job Type</label>
+                                <input type="text" id="job-type" name="jobType" placeholder="Full-time, Part-time, Freelance, etc.">
+                            </div>
+                            <div class="form-group">
+                                <label for="start-date">Start Date</label>
+                                <input type="text" id="start-date" name="startDate" placeholder="Month Year">
+                            </div>
+                            <div class="form-group">
+                                <label for="end-date">End Date</label>
+                                <input type="text" id="end-date" name="endDate" placeholder="Month Year or Present">
+                            </div>
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea id="description" name="description" rows="5" required></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn cancel-btn">Cancel</button>
+                                <button type="submit" class="btn save-btn">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="skills" class="admin-section">
+                <h2 class="section-title">Skills</h2>
+                <div class="category-container">
+                    <h3>Categories</h3>
+                    <div id="skill-categories" class="admin-items">
+                        <!-- Skill categories will be added dynamically -->
+                    </div>
+                    <button class="btn add-btn" id="add-category">Add New Category</button>
+                </div>
+                
+                <div class="skills-container">
+                    <h3>Skills</h3>
+                    <div id="skills-items" class="admin-items">
+                        <!-- Skills will be added dynamically -->
+                    </div>
+                    <button class="btn add-btn" id="add-skill">Add New Skill</button>
+                </div>
+                
+                <div class="modal" id="category-modal">
+                    <div class="modal-content">
+                        <span class="close-btn">&times;</span>
+                        <h3>Add/Edit Category</h3>
+                        <form id="category-form" class="admin-form">
+                            <input type="hidden" id="category-id" name="id">
+                            <div class="form-group">
+                                <label for="category-name">Category Name</label>
+                                <input type="text" id="category-name" name="name" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn cancel-btn">Cancel</button>
+                                <button type="submit" class="btn save-btn">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="modal" id="skill-modal">
+                    <div class="modal-content">
+                        <span class="close-btn">&times;</span>
+                        <h3>Add/Edit Skill</h3>
+                        <form id="skill-form" class="admin-form">
+                            <input type="hidden" id="skill-id" name="id">
+                            <div class="form-group">
+                                <label for="skill-name">Skill Name</label>
+                                <input type="text" id="skill-name" name="name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="skill-category">Category</label>
+                                <select id="skill-category" name="category" required>
+                                    <!-- Categories will be added dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="skill-icon">Icon URL</label>
+                                <input type="text" id="skill-icon" name="icon" placeholder="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/...">
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn cancel-btn">Cancel</button>
+                                <button type="submit" class="btn save-btn">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="resume" class="admin-section">
+                <h2 class="section-title">Resume</h2>
+                <form id="resume-form" class="admin-form">
+                    <div class="form-group">
+                        <h3>Choose Resume Source</h3>
+                        <div class="resume-options">
+                            <div class="option">
+                                <input type="radio" id="local-resume" name="resume-source" value="local" checked>
+                                <label for="local-resume">Use Local Resume (Amrut_CV.pdf)</label>
+                                <p class="helper-text">Uses the resume file from the website directory</p>
+                            </div>
+                            
+                            <div class="option">
+                                <input type="radio" id="custom-resume" name="resume-source" value="custom">
+                                <label for="custom-resume">Upload Custom Resume</label>
+                                <div class="upload-container" id="resume-upload-container">
+                                    <input type="file" id="resume-file" name="resume" accept="application/pdf" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Resume Preview</label>
+                        <div class="pdf-preview" id="resume-preview">
+                            <p>Current resume will be displayed here</p>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn save-btn">Save Changes</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <footer class="admin-footer">
+        <p>&copy; 2024 Portfolio Admin. All rights reserved.</p>
+    </footer>
+
+    <script src="js/admin.js"></script>
+    <script src="js/admin-data.js"></script>
+</body>
+</html> 
