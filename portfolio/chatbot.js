@@ -620,6 +620,8 @@ class Chatbot {
             bubble.style.opacity = '1';
             bubble.style.transform = 'scale(1) translateY(0)';
             bubble.style.pointerEvents = 'auto';
+            bubble.style.background = 'var(--main-color)';
+            bubble.style.color = 'white';
             console.log('💬 Bubble shown');
         }
     }

@@ -1271,8 +1271,9 @@ span {
     position: absolute;
     bottom: 8.5rem;
     right: 0;
-    background: var(--main-color);
-    color: white;
+    background: #a67bf1 !important;
+    background: var(--main-color) !important;
+    color: white !important;
     padding: 1.2rem 1.8rem;
     border-radius: 2rem;
     font-size: 1.4rem;
@@ -1285,6 +1286,7 @@ span {
     transform: scale(0.8) translateY(1rem);
     transform-origin: bottom center;
     transition: all 0.3s ease-out;
+    border: 2px solid var(--main-color);
 }
 
 .chat-bubble.hidden {
@@ -1298,12 +1300,15 @@ span {
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    color: white !important;
+    background: transparent !important;
 }
 
 .bubble-content span {
-    color: white;
+    color: white !important;
     font-size: inherit;
     font-weight: inherit;
+    background: transparent !important;
 }
 
 .bubble-arrow {
