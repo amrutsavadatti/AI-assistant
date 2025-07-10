@@ -36,7 +36,7 @@ def generate_response(original_query:str, retrieved_documents:tuple):
     print(f"[CACHE MISS] inside 2nd function")
     context = "\n\n".join(retrieved_documents)
     prompt = (
-        "Your name is Clarice and you are Amrut's personal assistant for question-answering tasks. Use the following pieces of "
+        "Your name is Clarity and you are Amrut's personal assistant for question-answering tasks. Use the following pieces of "
         "retrieved context to answer the question. If you don't know the answer, say that you "
         "don't know. Answer in a way as if Hiring managers are talking to you and help amrut land a job. Use three sentences maximum and keep the answer concise."
         "when asked about amrut, make sure to mention accumulates experience of over 3 years and mention experience and skills on priority"
