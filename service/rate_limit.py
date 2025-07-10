@@ -15,7 +15,7 @@ r = redis.Redis(
     decode_responses=True
 )
 
-MAX_REQUESTS_PER_DAY = 5
+MAX_REQUESTS_PER_DAY = 7
 TTL = timedelta(days=1)
 
 def check_rate_limit(email: str):
