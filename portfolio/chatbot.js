@@ -16,6 +16,7 @@ class Chatbot {
         this.addEntranceAnimation();
         this.bindContactFormEvents();
         this.contactFormShown = true; // Form is already in HTML
+        this.initBubble();
     }
     
     bindEvents() {
@@ -128,6 +129,9 @@ class Chatbot {
         chatContainer.classList.add('active');
         this.isOpen = true;
         
+        // Hide the bubble when chat opens
+        this.hideBubble();
+        
         // Prevent body scroll on mobile when chat is open
         if (window.innerWidth <= 768) {
             document.body.classList.add('chat-open');
@@ -149,6 +153,9 @@ class Chatbot {
         const chatContainer = document.getElementById('chat-container');
         chatContainer.classList.remove('active');
         this.isOpen = false;
+        
+        // Show the bubble again after a delay
+        this.showBubbleAfterDelay(3000);
         
         // Re-enable body scroll on mobile
         if (window.innerWidth <= 768) {
@@ -588,6 +595,52 @@ class Chatbot {
                 chatToggle.style.transition = 'all 0.3s ease';
             }, 800);
         }, 1000);
+    }
+    
+    // Bubble-related methods
+    initBubble() {
+        const bubble = document.getElementById('chat-bubble');
+        if (bubble) {
+            // Show bubble after page loads and entrance animation completes
+            setTimeout(() => {
+                this.showBubble();
+            }, 2000);
+            
+            // Add click event to bubble to open chat
+            bubble.addEventListener('click', () => {
+                this.openChat();
+            });
+        }
+    }
+    
+    showBubble() {
+        const bubble = document.getElementById('chat-bubble');
+        if (bubble && !this.isOpen) {
+            bubble.classList.remove('hidden');
+            bubble.style.opacity = '1';
+            bubble.style.transform = 'scale(1) translateY(0)';
+            bubble.style.pointerEvents = 'auto';
+            console.log('💬 Bubble shown');
+        }
+    }
+    
+    hideBubble() {
+        const bubble = document.getElementById('chat-bubble');
+        if (bubble) {
+            bubble.classList.add('hidden');
+            bubble.style.opacity = '0';
+            bubble.style.transform = 'scale(0.8) translateY(1rem)';
+            bubble.style.pointerEvents = 'none';
+            console.log('💬 Bubble hidden');
+        }
+    }
+    
+    showBubbleAfterDelay(delay = 3000) {
+        setTimeout(() => {
+            if (!this.isOpen) {
+                this.showBubble();
+            }
+        }, delay);
     }
 }
 

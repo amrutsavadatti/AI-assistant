@@ -783,6 +783,11 @@ span {
         grid-template-rows: repeat(6, auto);
     }
     
+    .parentSkills_5 {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, auto);
+    }
+    
     .parentSkills_2 {
         grid-template-columns: 1fr;
         grid-template-rows: repeat(10, auto);
@@ -797,7 +802,9 @@ span {
     .parentSkills_2 .div7, .parentSkills_2 .div8, .parentSkills_2 .div9,
     .parentSkills_2 .div10, .parentSkills_3 .div1, .parentSkills_3 .div2,
     .parentSkills_3 .div3, .parentSkills_3 .div4, .parentSkills_4 .div1,
-    .parentSkills_4 .div2, .parentSkills_4 .div3, .parentSkills_4 .div4 {
+    .parentSkills_4 .div2, .parentSkills_4 .div3, .parentSkills_4 .div4,
+    .parentSkills_5 .div1, .parentSkills_5 .div2, .parentSkills_5 .div4,
+    .parentSkills_5 .div5 {
         grid-area: auto;
     }
     
@@ -1259,6 +1266,79 @@ span {
     }
 }
 
+/* Chat Bubble Tooltip */
+.chat-bubble {
+    position: absolute;
+    bottom: 8.5rem;
+    right: 0;
+    background: var(--main-color);
+    color: white;
+    padding: 1.2rem 1.8rem;
+    border-radius: 2rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 0.4rem 2rem rgba(166, 123, 241, 0.3);
+    animation: bubbleFloat 3s ease-in-out infinite, bubbleFadeIn 0.5s ease-out;
+    z-index: 1000;
+    opacity: 0;
+    transform: scale(0.8) translateY(1rem);
+    transform-origin: bottom center;
+    transition: all 0.3s ease-out;
+}
+
+.chat-bubble.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8) translateY(1rem);
+    transition: all 0.3s ease-out;
+}
+
+.bubble-content {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.bubble-content span {
+    color: white;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.bubble-arrow {
+    position: absolute;
+    bottom: -0.8rem;
+    right: 2rem;
+    width: 0;
+    height: 0;
+    border-left: 0.8rem solid transparent;
+    border-right: 0.8rem solid transparent;
+    border-top: 0.8rem solid var(--main-color);
+}
+
+@keyframes bubbleFloat {
+    0%, 100% {
+        transform: translateY(0rem);
+    }
+    50% {
+        transform: translateY(-0.8rem);
+    }
+}
+
+@keyframes bubbleFadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.6) translateY(2rem);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0rem);
+    }
+}
+
+/* Bubble hiding is handled by JavaScript for better browser compatibility */
+
 .chat-container {
     position: absolute;
     bottom: 8rem;
@@ -1659,6 +1739,17 @@ span {
 
 /* Responsive design for chatbot */
 @media (max-width: 768px) {
+    .chat-bubble {
+        bottom: 7.5rem;
+        right: -1rem;
+        font-size: 1.3rem;
+        padding: 1rem 1.6rem;
+    }
+    
+    .bubble-arrow {
+        right: 2.5rem;
+    }
+    
     body.chat-open {
         overflow: hidden;
         position: fixed;
@@ -1832,6 +1923,21 @@ span {
 }
 
 @media (max-width: 480px) {
+    .chat-bubble {
+        bottom: 7rem;
+        right: -1.5rem;
+        font-size: 1.2rem;
+        padding: 0.8rem 1.4rem;
+    }
+    
+    .bubble-arrow {
+        right: 3rem;
+        border-left: 0.6rem solid transparent;
+        border-right: 0.6rem solid transparent;
+        border-top: 0.6rem solid var(--main-color);
+        bottom: -0.6rem;
+    }
+    
     .chat-widget {
         z-index: 1000;
     }
