@@ -81,7 +81,7 @@ docker-compose up
 
 ### AI Chatbot
 - Email registration required
-- 5 questions per day limit
+- Rate limited questions per day
 - Rate limiting with Redis
 - Persistent chat history
 

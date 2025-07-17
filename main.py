@@ -233,7 +233,7 @@ async def chat(
     if not check_rate_limit(email):
         return {
             "status": 429,
-            "response": "Sorry! You've reached the limit of 5 questions per day. To continue the conversation, please drop your email and we'll follow up with all the relevant details about Amrut.\n\n📅 **For more in-depth discussion, let's meet!**\n\nSchedule a 30-minute conversation with Amrut directly:\n🔗 https://calendly.com/amrutsavadatticareers/30min\n\nLooking forward to connecting!"
+            "response": f"Sorry! You've reached the limit of {MAX_REQUESTS_PER_DAY} questions per day. To continue the conversation, please drop your email and we'll follow up with all the relevant details about Amrut.\n\n📅 **For more in-depth discussion, let's meet!**\n\nSchedule a 30-minute conversation with Amrut directly:\n🔗 https://calendly.com/amrutsavadatticareers/30min\n\nLooking forward to connecting!"
         }
 
     try:
