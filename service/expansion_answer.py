@@ -13,7 +13,7 @@ openai_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=openai_key)
 
 
-def augment_query_generated(query, model="gpt-3.5-turbo"):
+def augment_query_generated(query, model="gpt-4o"):
     prompt = """You are Amrut's AI assistant, your name is Clarity.
    Provide an example answer to the given question, that might be found in a documents that describe amruts work, resume, projects etc."""
     messages = [
@@ -54,7 +54,7 @@ def generate_response(original_query:str, retrieved_documents:tuple):
     )
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[
             {
                 "role": "system",
