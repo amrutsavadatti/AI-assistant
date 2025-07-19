@@ -414,15 +414,23 @@ class Chatbot {
             
             console.log('Adding success message...');
             
-            // Check if the response message contains "Welcome back!" and customize accordingly
-            let successMessage;
-            if (registrationResult && registrationResult.message && registrationResult.message.includes('Welcome back!')) {
-                successMessage = registrationResult.message;
+            // Check if verification is required
+            if (registrationResult && registrationResult.verification_required) {
+                // Show OTP verification form
+                this.showOTPVerificationForm(registrationResult.message);
             } else {
-                successMessage = `Thank you, ${name}! You're now registered and ready to chat. How can I help you today?`;
+                // Verification not required - returning user
+                
+                // Mark user as registered immediately for returning users
+                this.userData.isRegistered = true;
+                
+                // Use the message from the server response
+                let successMessage = registrationResult.message || `Thank you, ${name}! You're now registered and ready to chat. How can I help you today?`;
+                
+                this.addMessage(successMessage, 'bot');
+                
+                console.log('Registration completed - verification not required for returning user');
             }
-            
-            this.addMessage(successMessage, 'bot');
             
             console.log('Registration process completed successfully');
         } catch (error) {
@@ -433,11 +441,15 @@ class Chatbot {
     }
     
     async registerUser() {
-        const { email, company } = this.userData;
+        const { email, company, name } = this.userData;
         let url = `/api/register?email=${encodeURIComponent(email)}`;
         
         if (company) {
             url += `&company=${encodeURIComponent(company)}`;
+        }
+        
+        if (name) {
+            url += `&name=${encodeURIComponent(name)}`;
         }
         
         try {
@@ -469,6 +481,158 @@ class Chatbot {
             console.error('Registration error details:', error);
             // Re-throw the error to be caught by handleContactFormSubmit
             throw error;
+        }
+    }
+
+    showOTPVerificationForm(message) {
+        console.log('Showing OTP verification form...');
+        
+        // Hide contact form
+        this.hideContactForm();
+        
+        // Add message with OTP form
+        const otpFormHTML = `
+            <div class="otp-verification-container">
+                <p>${message}</p>
+                <form id="otp-form" class="otp-form">
+                    <div class="form-group">
+                        <label for="otp-input">Enter 6-digit verification code:</label>
+                        <input type="text" id="otp-input" placeholder="123456" maxlength="6" pattern="[0-9]{6}" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-submit">Verify Code</button>
+                        <button type="button" class="btn-resend">Resend Code</button>
+                    </div>
+                </form>
+                <div id="otp-error" class="error-message" style="display: none;"></div>
+            </div>
+        `;
+        
+        // Create bot message with OTP form
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <img src="clarity.JPG" alt="Clarity AI Assistant" class="bot-avatar-image">
+            </div>
+            <div class="message-content">
+                ${otpFormHTML}
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        // Add event listeners
+        const otpForm = document.getElementById('otp-form');
+        const resendBtn = document.querySelector('.btn-resend');
+        
+        otpForm.addEventListener('submit', (e) => this.handleOTPSubmit(e));
+        resendBtn.addEventListener('click', () => this.resendOTP());
+        
+        // Focus on OTP input
+        document.getElementById('otp-input').focus();
+    }
+    
+    async handleOTPSubmit(event) {
+        event.preventDefault();
+        
+        const otpInput = document.getElementById('otp-input');
+        const otp = otpInput.value.trim();
+        
+        if (!otp || otp.length !== 6) {
+            this.showOTPError('Please enter a valid 6-digit code.');
+            return;
+        }
+        
+        try {
+            console.log('Verifying OTP...');
+            const verificationResult = await this.verifyOTP(otp);
+            console.log('OTP verification successful:', verificationResult);
+            
+            // Mark user as registered
+            this.userData.isRegistered = true;
+            
+            // Hide OTP form and show success message
+            this.hideOTPForm();
+            this.addMessage(verificationResult.message, 'bot');
+            
+            console.log('OTP verification process completed successfully');
+        } catch (error) {
+            console.error('OTP verification failed:', error);
+            this.showOTPError('Invalid or expired code. Please try again.');
+        }
+    }
+    
+    async verifyOTP(otp) {
+        const { email } = this.userData;
+        let url = `/api/verify-otp?email=${encodeURIComponent(email)}&otp=${encodeURIComponent(otp)}`;
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                credentials: 'include'  // Enable cookies for verification
+            });
+            
+            console.log('OTP verification response status:', response.status);
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `Verification failed with status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('OTP verification successful:', data);
+            return data;
+        } catch (error) {
+            console.error('OTP verification error details:', error);
+            throw error;
+        }
+    }
+    
+    async resendOTP() {
+        try {
+            console.log('Resending OTP...');
+            const registrationResult = await this.registerUser();
+            console.log('OTP resent successfully:', registrationResult);
+            
+            // Update the message in the form
+            const otpContainer = document.querySelector('.otp-verification-container p');
+            if (otpContainer) {
+                otpContainer.textContent = registrationResult.message || 'New verification code sent to your email.';
+            }
+            
+            // Clear the input field
+            const otpInput = document.getElementById('otp-input');
+            if (otpInput) {
+                otpInput.value = '';
+                otpInput.focus();
+            }
+            
+        } catch (error) {
+            console.error('Failed to resend OTP:', error);
+            this.showOTPError('Failed to resend code. Please try again.');
+        }
+    }
+    
+    showOTPError(message) {
+        const errorDiv = document.getElementById('otp-error');
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    }
+    
+    hideOTPForm() {
+        const otpForm = document.getElementById('otp-form');
+        if (otpForm) {
+            otpForm.closest('.message').style.display = 'none';
         }
     }
     

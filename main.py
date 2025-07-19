@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request, Path, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from service import expansion_answer
 from service.rate_limit import check_rate_limit, MAX_REQUESTS_PER_DAY
+from service.email_service import generate_otp, store_otp, send_otp_email, verify_otp, get_otp_status
 from service.chromaDbUtils import load_knowledge_texts, chunk_texts, get_chroma_collection, populate_chroma_collection
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 import openai
@@ -99,7 +100,26 @@ def track_registration_in_redis(email: str):
     
     print(f"Tracked registration in Redis: {email} at {current_time}")
 
-def log_registration_to_csv(email: str, company: str = None):
+def check_email_in_csv(email: str):
+    """Check if email already exists in the CSV file"""
+    
+    if not os.path.isfile(CSV_LOG_FILE):
+        return False
+    
+    with csv_lock:
+        try:
+            with open(CSV_LOG_FILE, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row.get('email', '').lower() == email.lower():
+                        return True
+        except Exception as e:
+            logger.error(f"Error reading CSV file: {e}")
+            return False
+    
+    return False
+
+def log_registration_to_csv(email: str, company: str = None, name: str = None):
     """Log user registration to CSV file with timestamp and optional company"""
     
     with csv_lock:
@@ -127,11 +147,13 @@ def log_registration_to_csv(email: str, company: str = None):
                 'date': date_str,
                 'time': time_str,
                 'email': email,
-                'company': company or ""  # Empty string if no company provided
+                'company': company or "",  # Empty string if no company provided
+                'name': name or ""  # Empty string if no name provided
             })
             
         company_info = f" from {company}" if company else ""
-        print(f"Logged registration: {date_str} {time_str} - {email}{company_info}")
+        name_info = f" ({name})" if name else ""
+        print(f"Logged registration: {date_str} {time_str} - {email}{company_info}{name_info}")
 
 from redis import Redis
 import os
@@ -149,6 +171,7 @@ async def root():
         "docs": "/docs",
         "endpoints": [
             "/register",
+            "/verify-otp",
             "/chat", 
             "/user-status",
             "/all-history",
@@ -162,9 +185,120 @@ async def root():
 async def register_email(
     email: str = Query(..., description="User email address (required for registration)"),
     company: str = Query(None, description="Company name (optional)"),
+    name: str = Query(None, description="User full name (optional)"),
     response: Response = None
 ):
-    """Register user email and set cookie for future chat requests"""
+    """Send OTP verification email for user registration, or skip for existing users"""
+    
+    print(f"Registration request: {email}" + (f" from company: {company}" if company else "") + (f" ({name})" if name else ""))
+    
+    # Check if email already exists in CSV
+    email_exists = check_email_in_csv(email)
+    
+    if email_exists:
+        # User already registered, skip OTP verification
+        print(f"Returning user found in CSV: {email}")
+        
+        # Set email as cookie for future requests
+        response.set_cookie(
+            key="user_email", 
+            value=email, 
+            max_age=86400,  # 24 hours
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax"
+        )
+        
+        # Mark email as verified (since they're already in CSV)
+        verified_key = f"verified:{email}"
+        r.setex(verified_key, 86400, "verified")  # 24 hours
+        
+        # Track current registration in Redis
+        track_registration_in_redis(email)
+        
+        # Get current usage count
+        key = f"rate_limit:{email}"
+        current_count = r.get(key) or 0
+        remaining = max(0, MAX_REQUESTS_PER_DAY - int(current_count))
+        
+        if remaining > 0:
+            welcome_message = f"Welcome back! You have {remaining} questions remaining for today. How can I help you?"
+        else:
+            welcome_message = f"Welcome back! You've used all {MAX_REQUESTS_PER_DAY} questions for today. Your limit will reset in 24 hours from your first question.\n\n📅 **For more in-depth discussion, let's meet!**\n\nSchedule a 30-minute conversation with Amrut directly:\n🔗 https://calendly.com/amrutsavadatticareers/30min"
+        
+        return {
+            "status": 200,
+            "message": welcome_message,
+            "email": email,
+            "company": company,
+            "name": name,
+            "verification_required": False,
+            "is_returning_user": True,
+            "questions_exhausted": remaining == 0,
+            "questions_used": int(current_count),
+            "remaining_questions": remaining,
+            "daily_limit": MAX_REQUESTS_PER_DAY
+        }
+    
+    else:
+        # New user, proceed with OTP verification
+        print(f"New user, sending OTP: {email}")
+        
+        # Generate and store OTP
+        otp = generate_otp()
+        store_otp(email, otp)
+        
+        # Send OTP email
+        email_sent, message = send_otp_email(email, name, otp)
+        
+        if not email_sent:
+            raise HTTPException(500, f"Failed to send verification email: {message}")
+        
+        # Store registration data temporarily (without setting as registered)
+        temp_registration_key = f"temp_registration:{email}"
+        temp_data = {
+            "email": email,
+            "company": company or "",
+            "name": name or "",
+            "timestamp": datetime.now().isoformat()
+        }
+        import json
+        r.setex(temp_registration_key, 600, json.dumps(temp_data))  # 10 minutes expiry
+        
+        return {
+            "status": 200,
+            "message": f"Verification code sent to {email}. Please check your email and enter the 6-digit code.",
+            "email": email,
+            "company": company,
+            "name": name,
+            "verification_required": True,
+            "otp_expiry_minutes": 5
+        }
+
+@app.post("/verify-otpz")
+async def verify_email_otp(
+    email: str = Query(..., description="User email address"),
+    otp: str = Query(..., description="6-digit OTP code"),
+    response: Response = None
+):
+    """Verify OTP and complete registration"""
+    
+    # Verify OTP
+    is_valid, message = verify_otp(email, otp)
+    
+    if not is_valid:
+        raise HTTPException(400, message)
+    
+    # Get temporary registration data
+    temp_registration_key = f"temp_registration:{email}"
+    temp_data_str = r.get(temp_registration_key)
+    
+    if not temp_data_str:
+        raise HTTPException(400, "Registration data expired. Please register again.")
+    
+    # Parse temporary data
+    import json
+    temp_data = json.loads(temp_data_str)
     
     # Set email as cookie for future requests
     response.set_cookie(
@@ -176,16 +310,21 @@ async def register_email(
         samesite="lax"
     )
     
-    print(f"Registered user email: {email}" + (f" from company: {company}" if company else ""))
-    
     # Check if email was registered in past 24 hours and their usage status
     registration_status = check_previous_registration(email)
     
-    # Track current registration in Redis (even for returning users to refresh TTL)
+    # Track current registration in Redis (mark as verified)
     track_registration_in_redis(email)
     
     # Log registration to CSV file
-    log_registration_to_csv(email, company)
+    log_registration_to_csv(email, temp_data.get("company"))
+    
+    # Clean up temporary data
+    r.delete(temp_registration_key)
+    
+    # Mark email as verified
+    verified_key = f"verified:{email}"
+    r.setex(verified_key, 86400, "verified")  # 24 hours
     
     # Get current usage count
     key = f"rate_limit:{email}"
@@ -198,18 +337,23 @@ async def register_email(
         response_message = registration_status["message"]
     else:
         response_status = 200
-        response_message = registration_status["message"]
+        if registration_status["is_returning"]:
+            response_message = f"Welcome back, {temp_data.get('name') or 'there'}! Your email has been verified. You have {remaining} questions remaining for today."
+        else:
+            response_message = f"Thank you, {temp_data.get('name') or 'there'}! Your email has been verified and you're now registered. How can I help you today?"
     
     return {
         "status": response_status,
         "message": response_message,
         "email": email,
-        "company": company,
+        "company": temp_data.get("company"),
+        "name": temp_data.get("name"),
         "is_returning_user": registration_status["is_returning"],
         "questions_exhausted": registration_status["is_exhausted"],
         "questions_used": int(current_count),
         "remaining_questions": remaining,
-        "daily_limit": MAX_REQUESTS_PER_DAY
+        "daily_limit": MAX_REQUESTS_PER_DAY,
+        "verified": True
     }
 
 @app.get("/chat")
@@ -217,7 +361,7 @@ async def chat(
     question: str = Query(..., description="User question", min_length=1, max_length=MAX_QUESTION_LENGTH),
     request: Request = None
 ):
-    """Chat endpoint using registered email cookie"""
+    """Chat endpoint using registered and verified email cookie"""
     
     # Get email from cookie
     email = request.cookies.get("user_email")
@@ -226,6 +370,16 @@ async def chat(
         raise HTTPException(
             status_code=401, 
             detail="Email not registered. Please visit /register?email=your@email.com first to register your email."
+        )
+    
+    # Check if email is verified
+    verified_key = f"verified:{email}"
+    is_verified = r.get(verified_key)
+    
+    if not is_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Email not verified. Please complete email verification first."
         )
     
     print(f"User email from cookie: {email}")
