@@ -461,6 +461,11 @@ class Chatbot {
             console.log('Registration response status:', response.status);
             
             if (!response.ok) {
+                // For 429 errors, get the error message from response
+                if (response.status === 429) {
+                    const errorData = await response.json();
+                    throw new Error(`429: ${errorData.detail}`);
+                }
                 throw new Error(`Registration failed with status: ${response.status}`);
             }
             
@@ -531,6 +536,9 @@ class Chatbot {
         otpForm.addEventListener('submit', (e) => this.handleOTPSubmit(e));
         resendBtn.addEventListener('click', () => this.resendOTP());
         
+        // Start initial 40-second cooldown for the resend button
+        this.startResendCooldown(resendBtn);
+        
         // Focus on OTP input
         document.getElementById('otp-input').focus();
     }
@@ -592,8 +600,15 @@ class Chatbot {
     }
     
     async resendOTP() {
+        const resendBtn = document.querySelector('.btn-resend');
+        
         try {
             console.log('Resending OTP...');
+            
+            // Disable button temporarily
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Sending...';
+            
             const registrationResult = await this.registerUser();
             console.log('OTP resent successfully:', registrationResult);
             
@@ -610,10 +625,45 @@ class Chatbot {
                 otpInput.focus();
             }
             
+            // Start 40-second cooldown
+            this.startResendCooldown(resendBtn);
+            
         } catch (error) {
             console.error('Failed to resend OTP:', error);
-            this.showOTPError('Failed to resend code. Please try again.');
+            
+            // Check if it's a cooldown error (429)
+            if (error.message && error.message.includes('429')) {
+                // Extract remaining time from error message
+                const timeMatch = error.message.match(/wait (\d+) seconds/);
+                const remainingTime = timeMatch ? parseInt(timeMatch[1]) : 40;
+                
+                this.startResendCooldown(resendBtn, remainingTime);
+                this.showOTPError(`Please wait ${remainingTime} seconds before requesting another code.`);
+            } else {
+                // Re-enable button for other errors
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend Code';
+                this.showOTPError('Failed to resend code. Please try again.');
+            }
         }
+    }
+    
+    startResendCooldown(resendBtn, initialTime = 40) {
+        let timeLeft = initialTime;
+        resendBtn.disabled = true;
+        
+        const updateButton = () => {
+            if (timeLeft > 0) {
+                resendBtn.textContent = `Resend Code (${timeLeft}s)`;
+                timeLeft--;
+                setTimeout(updateButton, 1000);
+            } else {
+                resendBtn.disabled = false;
+                resendBtn.textContent = 'Resend Code';
+            }
+        };
+        
+        updateButton();
     }
     
     showOTPError(message) {

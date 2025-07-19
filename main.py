@@ -11,6 +11,7 @@ import asyncio
 import redis
 import csv
 import os
+import time
 from datetime import datetime
 import threading
 
@@ -147,8 +148,7 @@ def log_registration_to_csv(email: str, company: str = None, name: str = None):
                 'date': date_str,
                 'time': time_str,
                 'email': email,
-                'company': company or "",  # Empty string if no company provided
-                'name': name or ""  # Empty string if no name provided
+                'company': company or ""  # Empty string if no company provided
             })
             
         company_info = f" from {company}" if company else ""
@@ -244,9 +244,26 @@ async def register_email(
         # New user, proceed with OTP verification
         print(f"New user, sending OTP: {email}")
         
+        # Check OTP resend cooldown (40 seconds)
+        cooldown_key = f"otp_cooldown:{email}"
+        last_sent = r.get(cooldown_key)
+        
+        if last_sent:
+            time_since_last = time.time() - float(last_sent)
+            if time_since_last < 40:  # 40 seconds cooldown
+                remaining_time = int(40 - time_since_last)
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Please wait {remaining_time} seconds before requesting another code."
+                )
+        
         # Generate and store OTP
         otp = generate_otp()
         store_otp(email, otp)
+        print(f"OTP generated: {otp}")
+        
+        # Track OTP send time for cooldown
+        r.setex(cooldown_key, 40, str(time.time()))  # 40 seconds cooldown
         
         # Send OTP email
         email_sent, message = send_otp_email(email, name, otp)
@@ -275,7 +292,7 @@ async def register_email(
             "otp_expiry_minutes": 5
         }
 
-@app.post("/verify-otpz")
+@app.post("/verify-otp")
 async def verify_email_otp(
     email: str = Query(..., description="User email address"),
     otp: str = Query(..., description="6-digit OTP code"),
@@ -310,9 +327,6 @@ async def verify_email_otp(
         samesite="lax"
     )
     
-    # Check if email was registered in past 24 hours and their usage status
-    registration_status = check_previous_registration(email)
-    
     # Track current registration in Redis (mark as verified)
     track_registration_in_redis(email)
     
@@ -331,16 +345,14 @@ async def verify_email_otp(
     current_count = r.get(key) or 0
     remaining = max(0, MAX_REQUESTS_PER_DAY - int(current_count))
     
-    # Determine response status and message based on registration status
-    if registration_status["is_exhausted"]:
-        response_status = 429  # Too Many Requests
-        response_message = registration_status["message"]
+    # For users completing OTP verification, they are always NEW users
+    user_name = temp_data.get('name') or 'there'
+    response_status = 200
+    
+    if remaining > 0:
+        response_message = f"🎉 Welcome, {user_name}! Your email has been verified successfully. How can I help you learn more about Amrut today?"
     else:
-        response_status = 200
-        if registration_status["is_returning"]:
-            response_message = f"Welcome back, {temp_data.get('name') or 'there'}! Your email has been verified. You have {remaining} questions remaining for today."
-        else:
-            response_message = f"Thank you, {temp_data.get('name') or 'there'}! Your email has been verified and you're now registered. How can I help you today?"
+        response_message = f"Welcome, {user_name}! Your email has been verified, but you've reached the daily limit of {MAX_REQUESTS_PER_DAY} questions. Your questions will reset in 24 hours.\n\n📅 **For more in-depth discussion, let's meet!**\n\nSchedule a 30-minute conversation with Amrut directly:\n🔗 https://calendly.com/amrutsavadatticareers/30min"
     
     return {
         "status": response_status,
@@ -348,8 +360,8 @@ async def verify_email_otp(
         "email": email,
         "company": temp_data.get("company"),
         "name": temp_data.get("name"),
-        "is_returning_user": registration_status["is_returning"],
-        "questions_exhausted": registration_status["is_exhausted"],
+        "is_returning_user": False,  # Users completing OTP are always new users
+        "questions_exhausted": remaining == 0,
         "questions_used": int(current_count),
         "remaining_questions": remaining,
         "daily_limit": MAX_REQUESTS_PER_DAY,
