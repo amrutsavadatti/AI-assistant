@@ -131,7 +131,7 @@ def log_registration_to_csv(email: str, company: str = None, name: str = None):
         file_exists = os.path.isfile(CSV_LOG_FILE)
         
         with open(CSV_LOG_FILE, 'a', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['date', 'time', 'email', 'company']
+            fieldnames = ['date', 'time', 'email', 'company', 'name']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             
             # Write header if file is new
@@ -148,7 +148,8 @@ def log_registration_to_csv(email: str, company: str = None, name: str = None):
                 'date': date_str,
                 'time': time_str,
                 'email': email,
-                'company': company or ""  # Empty string if no company provided
+                'company': company or "",  # Empty string if no company provided
+                'name': name or ""  # Empty string if no name provided
             })
             
         company_info = f" from {company}" if company else ""
@@ -266,10 +267,10 @@ async def register_email(
         r.setex(cooldown_key, 40, str(time.time()))  # 40 seconds cooldown
         
         # Send OTP email
-        email_sent, message = send_otp_email(email, name, otp)
+        # email_sent, message = send_otp_email(email, name, otp)
         
-        if not email_sent:
-            raise HTTPException(500, f"Failed to send verification email: {message}")
+        # if not email_sent:
+        #     raise HTTPException(500, f"Failed to send verification email: {message}")
         
         # Store registration data temporarily (without setting as registered)
         temp_registration_key = f"temp_registration:{email}"
@@ -331,7 +332,7 @@ async def verify_email_otp(
     track_registration_in_redis(email)
     
     # Log registration to CSV file
-    log_registration_to_csv(email, temp_data.get("company"))
+    log_registration_to_csv(email, temp_data.get("company"), temp_data.get("name"))
     
     # Clean up temporary data
     r.delete(temp_registration_key)
