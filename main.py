@@ -267,10 +267,10 @@ async def register_email(
         r.setex(cooldown_key, 40, str(time.time()))  # 40 seconds cooldown
         
         # Send OTP email
-        # email_sent, message = send_otp_email(email, name, otp)
+        email_sent, message = send_otp_email(email, name, otp)
         
-        # if not email_sent:
-        #     raise HTTPException(500, f"Failed to send verification email: {message}")
+        if not email_sent:
+            raise HTTPException(500, f"Failed to send verification email: {message}")
         
         # Store registration data temporarily (without setting as registered)
         temp_registration_key = f"temp_registration:{email}"
