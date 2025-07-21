@@ -2360,6 +2360,11 @@ span {
     border-radius: 12px;
     padding: 20px;
     margin: 10px 0;
+    /* Safari specific fixes */
+    -webkit-border-radius: 12px;
+    display: block;
+    position: relative;
+    overflow: visible;
 }
 
 .otp-verification-container p {
@@ -2401,6 +2406,10 @@ span {
     color: #6C63FF;
     width: 120px;
     margin: 0 auto;
+    /* Safari specific fixes */
+    -webkit-appearance: none;
+    -webkit-border-radius: 8px;
+    box-sizing: border-box;
 }
 
 #otp-input:focus {
@@ -2430,6 +2439,10 @@ span {
     transition: all 0.3s ease;
     font-size: 14px;
     text-transform: none;
+    /* Safari specific fixes */
+    -webkit-appearance: none;
+    -webkit-border-radius: 6px;
+    -webkit-font-smoothing: antialiased;
 }
 
 .btn-submit {

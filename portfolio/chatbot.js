@@ -406,10 +406,15 @@ class Chatbot {
             console.log('Registration API call succeeded:', registrationResult);
             
             this.userData.isRegistered = true;
-            console.log('User data updated:', this.userData);
-            
-            // Hide form and show success message
-            console.log('Hiding contact form...');
+                    console.log('User data updated:', this.userData);
+        
+        // Hide form and show success message
+        console.log('Hiding contact form...');
+        
+        // Safari debugging
+        if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+            console.log('Safari detected - using enhanced OTP form handling');
+        }
             this.hideContactForm();
             
             console.log('Adding success message...');
@@ -492,55 +497,154 @@ class Chatbot {
     showOTPVerificationForm(message) {
         console.log('Showing OTP verification form...');
         
+        // Safari detection and debugging
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        console.log('Browser detected:', navigator.userAgent);
+        console.log('Is Safari:', isSafari);
+        
         // Hide contact form
         this.hideContactForm();
         
-        // Add message with OTP form
-        const otpFormHTML = `
-            <div class="otp-verification-container">
-                <p>${message}</p>
-                <form id="otp-form" class="otp-form">
-                    <div class="form-group">
-                        <label for="otp-input">Enter 6-digit verification code:</label>
-                        <input type="text" id="otp-input" placeholder="123456" maxlength="6" pattern="[0-9]{6}" required>
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn-submit">Verify Code</button>
-                        <button type="button" class="btn-resend">Resend Code</button>
-                    </div>
-                </form>
-                <div id="otp-error" class="error-message" style="display: none;"></div>
-            </div>
-        `;
-        
-        // Create bot message with OTP form
+        // Create bot message with OTP form using DOM methods (Safari compatible)
         const chatMessages = document.getElementById('chat-messages');
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message bot-message';
-        messageDiv.innerHTML = `
-            <div class="message-avatar">
-                <img src="clarity.JPG" alt="Clarity AI Assistant" class="bot-avatar-image">
-            </div>
-            <div class="message-content">
-                ${otpFormHTML}
-            </div>
-        `;
         
+        // Create message avatar
+        const messageAvatar = document.createElement('div');
+        messageAvatar.className = 'message-avatar';
+        const avatarImg = document.createElement('img');
+        avatarImg.src = 'clarity.JPG';
+        avatarImg.alt = 'Clarity AI Assistant';
+        avatarImg.className = 'bot-avatar-image';
+        messageAvatar.appendChild(avatarImg);
+        
+        // Create message content
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        
+        // Create OTP verification container
+        const otpContainer = document.createElement('div');
+        otpContainer.className = 'otp-verification-container';
+        
+        // Create message paragraph
+        const messagePara = document.createElement('p');
+        messagePara.textContent = message;
+        otpContainer.appendChild(messagePara);
+        
+        // Create OTP form
+        const otpForm = document.createElement('form');
+        otpForm.id = 'otp-form';
+        otpForm.className = 'otp-form';
+        
+        // Create form group
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+        
+        // Create label
+        const label = document.createElement('label');
+        label.setAttribute('for', 'otp-input');
+        label.textContent = 'Enter 6-digit verification code:';
+        formGroup.appendChild(label);
+        
+        // Create OTP input
+        const otpInput = document.createElement('input');
+        otpInput.type = 'text';
+        otpInput.id = 'otp-input';
+        otpInput.placeholder = '123456';
+        otpInput.maxLength = 6;
+        otpInput.pattern = '[0-9]{6}';
+        otpInput.required = true;
+        formGroup.appendChild(otpInput);
+        
+        otpForm.appendChild(formGroup);
+        
+        // Create form actions
+        const formActions = document.createElement('div');
+        formActions.className = 'form-actions';
+        
+        // Create submit button
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'btn-submit';
+        submitBtn.textContent = 'Verify Code';
+        formActions.appendChild(submitBtn);
+        
+        // Create resend button
+        const resendBtn = document.createElement('button');
+        resendBtn.type = 'button';
+        resendBtn.className = 'btn-resend';
+        resendBtn.textContent = 'Resend Code';
+        formActions.appendChild(resendBtn);
+        
+        otpForm.appendChild(formActions);
+        otpContainer.appendChild(otpForm);
+        
+        // Create error div
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'otp-error';
+        errorDiv.className = 'error-message';
+        errorDiv.style.display = 'none';
+        otpContainer.appendChild(errorDiv);
+        
+        // Assemble the complete message
+        messageContent.appendChild(otpContainer);
+        messageDiv.appendChild(messageAvatar);
+        messageDiv.appendChild(messageContent);
+        
+        // Add to chat messages
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         
-        // Add event listeners
-        const otpForm = document.getElementById('otp-form');
-        const resendBtn = document.querySelector('.btn-resend');
+        console.log('OTP form DOM elements created and added to chat');
         
-        otpForm.addEventListener('submit', (e) => this.handleOTPSubmit(e));
-        resendBtn.addEventListener('click', () => this.resendOTP());
+        // Use setTimeout to ensure DOM is ready before adding event listeners (Safari fix)
+        const timeoutDelay = isSafari ? 100 : 50; // Longer delay for Safari
+        console.log(`Using timeout delay of ${timeoutDelay}ms for event listeners`);
         
-        // Start initial 40-second cooldown for the resend button
-        this.startResendCooldown(resendBtn);
-        
-        // Focus on OTP input
-        document.getElementById('otp-input').focus();
+        setTimeout(() => {
+            try {
+                // Add event listeners
+                otpForm.addEventListener('submit', (e) => this.handleOTPSubmit(e));
+                resendBtn.addEventListener('click', () => this.resendOTP());
+                
+                // Start initial 40-second cooldown for the resend button
+                this.startResendCooldown(resendBtn);
+                
+                // Focus on OTP input with additional delay for Safari
+                const focusDelay = isSafari ? 300 : 100; // Longer delay for Safari
+                setTimeout(() => {
+                    try {
+                        if (document.getElementById('otp-input')) {
+                            otpInput.focus();
+                            console.log('OTP input focused successfully');
+                        } else {
+                            console.error('OTP input element not found in DOM');
+                        }
+                    } catch (error) {
+                        console.warn('Could not focus OTP input:', error);
+                    }
+                }, focusDelay);
+                
+                console.log('OTP form event listeners attached successfully');
+            } catch (error) {
+                console.error('Error setting up OTP form:', error);
+                // Safari fallback - try again with longer delay
+                if (isSafari) {
+                    console.log('Retrying OTP form setup for Safari...');
+                    setTimeout(() => {
+                        try {
+                            otpForm.addEventListener('submit', (e) => this.handleOTPSubmit(e));
+                            resendBtn.addEventListener('click', () => this.resendOTP());
+                            this.startResendCooldown(resendBtn);
+                            console.log('Safari OTP form setup retry successful');
+                        } catch (retryError) {
+                            console.error('Safari OTP form setup retry failed:', retryError);
+                        }
+                    }, 500);
+                }
+            }
+        }, timeoutDelay);
     }
     
     async handleOTPSubmit(event) {
@@ -674,15 +778,33 @@ class Chatbot {
             
             // Hide error after 5 seconds
             setTimeout(() => {
-                errorDiv.style.display = 'none';
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                }
             }, 5000);
+        } else {
+            // Fallback for Safari - create error message if element not found
+            console.error('OTP error div not found, creating fallback');
+            this.addMessage(`⚠️ ${message}`, 'bot');
         }
     }
     
     hideOTPForm() {
         const otpForm = document.getElementById('otp-form');
         if (otpForm) {
-            otpForm.closest('.message').style.display = 'none';
+            const messageElement = otpForm.closest('.message');
+            if (messageElement) {
+                messageElement.style.display = 'none';
+            } else {
+                // Safari fallback - try different approach
+                const otpContainer = document.querySelector('.otp-verification-container');
+                if (otpContainer) {
+                    const parentMessage = otpContainer.closest('.message');
+                    if (parentMessage) {
+                        parentMessage.style.display = 'none';
+                    }
+                }
+            }
         }
     }
     
@@ -857,6 +979,42 @@ class Chatbot {
                 this.showBubble();
             }
         }, delay);
+    }
+    
+    // Debug method for testing OTP form functionality (especially Safari)
+    testOTPForm() {
+        console.log('=== OTP Form Test (Safari Debug) ===');
+        console.log('Browser:', navigator.userAgent);
+        console.log('Is Safari:', /^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+        
+        // Test OTP form creation
+        try {
+            this.showOTPVerificationForm('Test OTP verification - this is a debug test');
+            console.log('✅ OTP form creation successful');
+            
+            // Test form elements after a delay
+            setTimeout(() => {
+                const otpForm = document.getElementById('otp-form');
+                const otpInput = document.getElementById('otp-input');
+                const submitBtn = document.querySelector('.btn-submit');
+                const resendBtn = document.querySelector('.btn-resend');
+                
+                console.log('Form elements check:');
+                console.log('  - OTP Form:', otpForm ? '✅ Found' : '❌ Not found');
+                console.log('  - OTP Input:', otpInput ? '✅ Found' : '❌ Not found');
+                console.log('  - Submit Button:', submitBtn ? '✅ Found' : '❌ Not found');
+                console.log('  - Resend Button:', resendBtn ? '✅ Found' : '❌ Not found');
+                
+                if (otpInput) {
+                    console.log('  - Input focused:', document.activeElement === otpInput ? '✅ Yes' : '❌ No');
+                }
+                
+                console.log('=== Test Complete ===');
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ OTP form creation failed:', error);
+        }
     }
 }
 
